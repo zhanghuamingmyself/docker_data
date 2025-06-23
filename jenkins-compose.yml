@@ -1,0 +1,20 @@
+version: '3.8'
+name: zhm-jenkins
+services:
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17  # 使用 LTS 版本 + JDK17
+    #    restart: always
+    container_name: zhm-jenkins-1
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # 禁用首次安装向导（可选，需初始化配置）
+    volumes:
+      # 持久化存储：Jenkins 数据、插件、配置文件
+      - D:\docker_data\jenkins\jenkins_home:/var/jenkins_home
+      # 可选：挂载宿主机的 Docker 套接字（允许 Jenkins 调用宿主机 Docker）
+      - D:\docker_data\jenkins\run\docker.sock:/var/run/docker.sock
+    ports:
+      # 暴露 Web UI 端口和代理端口（用于分布式构建）
+      - "8080:8080"
+      - "50000:50000"
+

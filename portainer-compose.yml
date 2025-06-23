@@ -1,0 +1,17 @@
+version: '3.8'
+name: zhm-portainer
+services:
+  portainer:
+    image: portainer/portainer-ce:latest  # 社区版（CE）
+    container_name: zhm-portainer-1
+    volumes:
+      # 持久化存储配置数据
+      - D:\docker_data\portainer\data:/data
+      # 挂载 Docker 套接字以管理宿主机 Docker
+      - D:\docker_data\portainer\run\docker.sock:/var/run/docker.sock
+    ports:
+      # 暴露 Web 管理界面（HTTPS）和边缘代理端口
+      - "9000:9000"
+      - "9443:9443"
+      - "8000:8000"
+

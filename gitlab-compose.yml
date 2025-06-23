@@ -1,0 +1,29 @@
+version: '3.8'
+name: zhm-gitlab
+services:
+  gitlab:
+    image: gitlab/gitlab-ce:latest  # 社区版（CE）
+    #    restart: always
+    container_name: zhm-gitlab-1
+    environment:
+      # 基础配置
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://127.0.0.1'  # 替换为你的域名或 IP
+        gitlab_rails['time_zone'] = 'Asia/Shanghai'
+    volumes:
+      # 持久化存储：配置、数据、日志
+      - D:\docker_data\gitlab\config:/etc/gitlab
+      - D:\docker_data\gitlab\logs:/var/log/gitlab
+      - D:\docker_data\gitlab\data:/var/opt/gitlab
+    ports:
+      # 暴露 HTTP、HTTPS 和 SSH 端口
+      - "80:80"
+      - "443:443"
+      - "2222:22"  # 避免与宿主机 SSH 端口冲突
+    # 资源限制（按需调整）
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 4G
+

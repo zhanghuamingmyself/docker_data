@@ -1,0 +1,13 @@
+version: '3.8'
+name: zhm-registry
+services:
+  registry:
+    image: registry:2
+    #    restart: always
+    container_name: zhm-registry-1
+    volumes:
+      # 持久化存储镜像数据
+      - D:\docker_data\registry:/var/lib/registry
+    ports:
+      - "5000:5000"
+

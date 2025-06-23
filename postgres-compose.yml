@@ -1,0 +1,26 @@
+version: "3.8"
+name: zhm-postgres
+services:
+  postgres:
+    image: postgres:15  # 可选择具体版本
+    container_name: my-postgres
+    environment:
+      POSTGRES_USER: admin         # 管理员用户名
+      POSTGRES_PASSWORD: password  # 管理员密码
+      POSTGRES_DB: appdb           # 初始数据库
+    volumes:
+      - D:\docker_data\postgresql:/var/lib/postgresql/data  # 数据持久化
+    ports:
+      - "5432:5432"  # 暴露端口（可选）
+    networks:
+      - app-network
+    healthcheck:      # 健康检查
+      test: ["CMD-SHELL", "pg_isready -U admin -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+
+networks:
+  app-network:
+    driver: bridge

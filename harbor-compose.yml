@@ -1,0 +1,52 @@
+version: '3.8'
+name: zhm-portainer
+services:
+  redis:
+    image: goharbor/redis-photon:v2.10.0
+    container_name: redis
+    restart: always
+    volumes:
+      - D:\docker_data\harbor\redis:/var/lib/redis
+    networks:
+      - harbor
+
+  postgresql:
+    image: goharbor/harbor-db:v2.10.0
+    container_name: postgresql
+    restart: always
+    volumes:
+      - D:\docker_data\harbor\database:/var/lib/postgresql/data
+    environment:
+      POSTGRESQL_ADMIN_PASSWORD: root123
+    networks:
+      - harbor
+
+  core:
+    image: goharbor/harbor-core:v2.10.0
+    container_name: core
+    restart: always
+    depends_on:
+      - postgresql
+      - redis
+    environment:
+      CORE_SECRET: secretkey
+      JOBSERVICE_SECRET: secretkey
+    volumes:
+      - D:\docker_data\harbor\core:/etc/core/app
+      - D:\docker_data\harbor\common/config/core/ca-certificates/:/etc/core/ca/custom
+    networks:
+      - harbor
+    ports:
+      # 暴露 Web 管理界面（HTTPS）和边缘代理端口
+      - "8022:80"
+  # 其他服务（portal, registry, jobservice等）配置类似...
+
+networks:
+  harbor:
+    driver: bridge
+
+volumes:
+  harbor-data:
+    driver: local
+  harbor-database:
+    driver: local

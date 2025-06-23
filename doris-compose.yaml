@@ -1,0 +1,130 @@
+#version: "3.8"
+#name: zhm-doris
+#services:
+#  fe:
+#    image: apache/doris:fe-3.0.4
+#    hostname: doris-fe
+#    ports:
+#      - "9010:9010"
+#      - "8030:8030"
+#      - "9020:9020"
+#      - "9030:9030"
+#    command:
+#      - /opt/apache-doris/fe/bin/start_fe.sh
+#    environment:
+#      - FE_SERVERS=fe1:192.168.107.175:9010
+#      - FE_ID=1
+#    volumes:
+#      - D:\docker_data\doris\fe\doris-meta:/opt/apache-doris/fe/doris-meta
+#      - D:\docker_data\doris\fe\log:/opt/apache-doris/fe/log
+#    networks:
+#      - doris-net
+#    healthcheck:
+#      test: [ "CMD", "mysql", "-h", "localhost", "-P", "9030", "-u", "root", "-e", "SHOW FRONTENDS;" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#  be:
+#    image: apache/doris:be-3.0.4
+#    hostname: doris-be
+#    ports:
+#      - "8040:8040"
+#      - "9050:9050"
+#      - "9060:9060"
+#    environment:
+#      - FE_SERVERS=fe1:192.168.107.175:9010
+#      - BE_ADDR=192.168.107.175:9050
+#    volumes:
+#      - D:\docker_data\doris\be\storage:/opt/apache-doris/be/storage
+#      - D:\docker_data\doris\be\log:/opt/apache-doris/be/log
+#    depends_on:
+#      - fe
+#    networks:
+#      - doris-net
+#networks:
+#  doris-net:
+#    driver: bridge
+#    attachable: true
+
+
+
+version: "3.8"
+name: zhm-doris
+services:
+  fe:
+    image: apache/doris:fe-3.0.4
+    hostname: fe
+    command:
+      - /opt/apache-doris/fe/bin/start_fe.sh
+    environment:
+      - FE_SERVERS=fe1:127.0.0.1:9010
+      - FE_ID=1
+    volumes:
+      - D:\docker_data\doris\fe\doris-meta:/opt/apache-doris/fe/doris-meta
+      - D:\docker_data\doris\fe\log:/opt/apache-doris/fe/log
+    network_mode: host
+  be:
+    image: apache/doris:be-3.0.4
+    hostname: be
+    environment:
+      - FE_SERVERS=fe1:127.0.0.1:9010
+      - BE_ADDR=127.0.0.1:9050
+    volumes:
+      - D:\docker_data\doris\be\storage:/opt/apache-doris/be/storage
+      - D:\docker_data\doris\be\log:/opt/apache-doris/be/log
+    depends_on:
+      - fe
+    network_mode: host
+
+
+
+
+#version: '3.8'
+#name: zhm-doris
+#services:
+#  fe:
+#    image: apache/doris:fe-3.0.4
+#    hostname: doris-fe
+#    command:
+#      - /opt/apache-doris/fe/bin/start_fe.sh
+#      - --helper
+#      - doris-fe:9010  # 使用容器FQDN
+#    environment:
+#      - FE_SERVERS=fe1:127.0.0.1:9010
+#      - FE_ID=1
+#    ports:
+#      - "8030:8030"
+#      - "9020:9020"
+#      - "9030:9030"
+#    volumes:
+#      - D:\docker_data\doris\fe\doris-meta:/opt/apache-doris/fe/doris-meta
+#      - D:\docker_data\doris\fe\log:/opt/apache-doris/fe/log
+#    networks:
+#      - doris-net
+#    healthcheck:
+#      test: [ "CMD", "mysql", "-h", "localhost", "-P", "9030", "-u", "root", "-e", "SHOW FRONTENDS;" ]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#  be:
+#    image: apache/doris:be-3.0.4
+#    hostname: doris-be
+#    command: /opt/apache-doris/be/bin/start_be.sh
+#    environment:
+#      - FE_SERVERS=fe1:doris-fe:9010  # 使用全限定域名
+#      - BE_ADDR=doris-be:9050
+#    depends_on:
+#      - fe
+#    ports:
+#      - "8040:8040"
+#      - "9050:9050"
+#      - "9060:9060"
+#    volumes:
+#      - D:\docker_data\doris\be\storage:/opt/apache-doris/be/storage
+#      - D:\docker_data\doris\be\log:/opt/apache-doris/be/log
+#    networks:
+#      - doris-net
+#networks:
+#  doris-net:
+#    driver: bridge
+#    attachable: true

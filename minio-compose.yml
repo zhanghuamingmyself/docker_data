@@ -1,0 +1,20 @@
+version: '3.8'
+name: zhm-minio
+services:
+  minio:
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    #    restart: always
+    container_name: zhm-minio-1
+    environment:
+      # 设置默认的访问密钥和密钥（生产环境建议通过 secrets 管理）
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    volumes:
+      # 持久化存储：将容器内的数据目录映射到宿主机
+      - D:\docker_data\minio\data:/data
+    ports:
+      # 暴露 API 端口（9000）和管理控制台端口（9001）
+      - "9000:9000"
+      - "9001:9001"
+    command: server /data --console-address ":9001"
+

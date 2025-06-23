@@ -1,0 +1,17 @@
+version: '3.8'
+name: zhm-redis
+services:
+  redis:
+    image: redis:6-alpine
+    #    restart: always
+    container_name: zhm-redis-1
+    ports:
+      - 6379:6379
+    volumes:
+      - D:\docker_data\redis\data_6379:/usr/local/redis/docker/data_6379
+      - D:\docker_data\redis\logs/:/usr/local/redis/logs
+      - D:\docker_data\redis\conf:/usr/local/redis/docker/redis_conf
+    command: [ "redis-server", "/usr/local/redis/docker/redis_conf/redis_6379.conf" ]
+    environment:
+      TZ: Asia/Shanghai
+

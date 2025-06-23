@@ -1,0 +1,10 @@
+version: '3.8'
+name: zhm-selenium
+services:
+  selenium:
+    image: selenium/standalone-chrome
+    #    restart: always
+    container_name: zhm-selenium-1
+    ports:
+      - 4444:4444
+

@@ -1,0 +1,43 @@
+version: '3.8'
+name: zhm-es
+services:
+  es:
+    image: elasticsearch:8.11.3  # 指定版本（推荐与 Kibana 版本一致）
+    container_name: zhm-es-1
+    environment:
+      - cluster.name=my-es-cluster
+      - node.name=node-1
+      - discovery.seed_hosts=zhm-es-1  # 集群节点发现（单节点示例）
+      - cluster.initial_master_nodes=node-1
+      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+      # 启用安全认证
+      - xpack.security.enabled=false  # 开发环境可关闭安全认证
+      - xpack.security.http.ssl.enabled=false  # 开发环境可关闭 HTTPS
+    volumes:
+      # 持久化存储数据
+      - D:\docker_data\es\data:/usr/share/elasticsearch/data
+    ports:
+      # 暴露 HTTP API 端口和集群通信端口
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elastic-network
+
+  kibana: # 可选：部署 Kibana（可视化工具）
+    image: kibana:8.11.3
+    container_name: zhm-kibana-1
+#    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://zhm-es-1:9200
+      - ELASTICSEARCH_USERNAME=zhm  # 默认用户
+      - ELASTICSEARCH_PASSWORD=zhm3300223
+    ports:
+      - "5601:5601"
+    depends_on:
+      - es
+    networks:
+      - elastic-network
+
+networks:
+  elastic-network:
+    driver: bridge

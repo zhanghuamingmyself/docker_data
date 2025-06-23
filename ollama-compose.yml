@@ -1,0 +1,11 @@
+version: '3.8'
+name: zhm-ollama
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: zhm-ollama-1
+    ports:
+      - "11434:11434"
+    volumes:
+      - D:\docker_data\ollama:/root/.ollama
+#    restart: always
