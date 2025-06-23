@@ -1,0 +1,19 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<com.gitee.jenkins.connection.GiteeConnectionConfig plugin="gitee@1170.v3d4640b_34233">
+  <useAuthenticatedEndpoint>true</useAuthenticatedEndpoint>
+  <connections>
+    <com.gitee.jenkins.connection.GiteeConnection>
+      <name></name>
+      <url></url>
+      <clientBuilder class="com.gitee.jenkins.gitee.api.impl.GiteeV5ClientBuilder">
+        <id>v5</id>
+        <ordinal>3</ordinal>
+        <apiProxyClass>com.gitee.jenkins.gitee.api.impl.GiteeV5ApiProxy</apiProxyClass>
+        <pullRequestIdProvider class="com.gitee.jenkins.gitee.api.impl.GiteeV5ClientBuilder$1"/>
+      </clientBuilder>
+      <ignoreCertificateErrors>false</ignoreCertificateErrors>
+      <connectionTimeout>10</connectionTimeout>
+      <readTimeout>10</readTimeout>
+    </com.gitee.jenkins.connection.GiteeConnection>
+  </connections>
+</com.gitee.jenkins.connection.GiteeConnectionConfig>

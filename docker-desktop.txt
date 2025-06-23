@@ -1,0 +1,9 @@
+{
+  "insecure-registries": [
+    "172.24.73.32"
+  ],
+  "registry-mirrors": [
+    "https://docker.xuanyuan.me"
+  ]
+}
+

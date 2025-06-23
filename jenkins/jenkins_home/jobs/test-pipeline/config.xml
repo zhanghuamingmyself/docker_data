@@ -1,0 +1,191 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@1505.vea_4b_20a_4a_495">
+  <actions>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobAction plugin="pipeline-model-definition@2.2247.va_423189a_7dff"/>
+    <org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction plugin="pipeline-model-definition@2.2247.va_423189a_7dff">
+      <jobProperties/>
+      <triggers/>
+      <parameters/>
+      <options/>
+    </org.jenkinsci.plugins.pipeline.modeldefinition.actions.DeclarativeJobPropertyTrackerAction>
+  </actions>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@4043.va_fb_de6a_a_8b_f5">
+    <script>// PROD Harbor 镜像仓库地址
+def PROD_REPO=&quot;10.101.7.108:80/szhems_demo_prod/&quot;
+// PROD K8s Master 节点地址
+def PROD_ENV=&quot;172.24.71.32&quot;
+
+
+// DEMO Harbor 镜像仓库地址
+def DEMO_REPO=&quot;10.101.7.108:80/szhems_demo_prod/&quot;
+// DEMO K8s Master 节点地址
+def DEMO_ENV=&quot;10.101.8.57&quot;
+
+
+// GitLab 凭证
+def GITLAB_CREDENTIALS=&quot;fc1719ac-22c6-4dc7-b514-15f40f69a1bb&quot;
+
+
+// Gitlab 代码库地址
+def GITLAB_URL=&quot;git@szgit.hithium.cn:ems/zhm-test-go.git&quot;
+// K8s 应用名称
+def APP=&quot;zhm-test-go&quot;
+// 镜像名称
+def IMAGE=&quot;zhm_test_go&quot;
+// K8s 命名空间
+def NS=&quot;szhems&quot;
+
+
+pipeline {
+    agent{
+        label &apos;10.101.5.202&apos;
+    }
+
+    options{
+        gitLabConnection(&apos;szGitlab&apos;)
+    }
+
+    parameters{
+        // 选择需要发布的环境
+        choice(
+            name: &apos;ENV&apos;,
+            choices: [&apos;PROD&apos;,&apos;DEMO&apos;],
+            description: &quot;请选择需要上线的环境。演示环境：DEMO，生产环境：PROD&quot;,
+        )
+        // 更新日志
+        text(
+            name:&apos;ReleaseNote&apos;,
+            description:&apos;更新日志&apos;,
+            defaultValue:&apos;&apos;
+        )
+        // 选择标签
+        gitParameter branch:&apos;&apos;,
+            branchFilter:&quot;.*&quot;,
+            defaultValue:&quot;&quot;,
+            description: &apos;选择标签。生产环境的 tag 标签为：v1.0.0.YYMMDD_prod；演示环境的 tag 标签为：v1.0.0.YYMMDD_demo&apos;,
+            name:&apos;TAG&apos;,
+            quickFilterEnabled: true,
+            selectedValue: &apos;DEFAULT&apos;,
+            sortMode: &apos;DESCENDING_SMART&apos;,
+            tagFilter: &apos;*&apos;,
+            type:&quot;PT_TAG&quot;
+    }
+
+    stages {
+        // 代码下载
+        stage(&apos;Checkout&apos;) {
+            steps {
+                //updateGitlabCommitStatus name: &apos;build&apos;, state: &apos;pending&apos;
+                checkout([$class: &apos;GitSCM&apos;,
+                    branches: [[ name:&quot;${TAG}&quot; ]],
+                    doGenerateSubmoduleConfinurations: false,
+                    extensions: [],
+                    submoduleCig: [],
+                    userRemoteConfigs: [[
+                        url: &quot;${GITLAB_URL}&quot;,
+                        credentialsId: &quot;${GITLAB_CREDENTIALS}&quot;,
+                    ]]
+                ])
+            }
+        }
+        stage(&apos;CI &amp; CD&apos;){
+            parallel{
+                stage(&apos;Demo&apos;){
+                    // 当选择为 &quot;DEMO&quot; 时执行
+                    when{
+                        equals expected: &quot;DEMO&quot;, actual: ENV
+                    }
+                    stages{
+                        stage(&apos;DEMO_Build&apos;) {
+                            // 发布演示环境
+
+                            steps {
+                                sh &quot;rm -rf .netrc&quot;
+                                sh &quot;&quot;&quot;
+                                    ln ./.netrc .
+                                &quot;&quot;&quot;
+                                sh &quot;echo &apos;演示环境打包&apos;&quot;
+                                sh &quot;&quot;&quot;
+                                    #!/bin/bash -e
+                                    docker build -t ${DEMO_REPO}${IMAGE}:${TAG} .
+                                &quot;&quot;&quot;
+                                sh &apos;docker image ls -a&apos;
+                            }
+                        }
+                        stage(&apos;DEMO_Deploy&apos;) {
+                            steps {
+                                sh &quot;echo &apos;演示环境发布&apos;&quot;
+                                sh &quot;docker push ${DEMO_REPO}${IMAGE}:${TAG}&quot;
+                                sh &quot;&quot;&quot;
+                                    ssh root@${DEMO_ENV} sudo  kubectl set image deployment/${APP} -n szhems ${APP}=${DEMO_REPO}${IMAGE}:${TAG}
+                                &quot;&quot;&quot;
+                            }
+                        }
+                    }
+                }
+                stage(&apos;PROD&apos;){
+                    // 当选择为 &quot;PROD&quot; 时执行
+                    when{
+                        equals expected: &quot;PROD&quot;, actual: ENV
+                    }
+                    stages{
+                        stage(&apos;PROD_Build&apos;) {
+                            steps {
+                                sh &quot;rm -rf .netrc&quot;
+                                sh &quot;&quot;&quot;
+                                    ln ./.netrc .
+                                &quot;&quot;&quot;
+                                sh &quot;echo &apos;生产环境打包&apos;&quot;
+                                sh &quot;&quot;&quot;
+                                    #!/bin/bash -e
+                                    docker build -t ${PROD_REPO}${IMAGE}:${TAG} .
+                                &quot;&quot;&quot;
+                                sh &apos;docker image ls -a&apos;
+                            }
+                        }
+
+                        stage(&apos;PROD_Deploy&apos;) {
+                            steps {
+                                sh &quot;echo &apos;生产环境发布&apos;&quot;
+                                sh &quot;docker push ${PROD_REPO}${IMAGE}:${TAG}&quot;
+                                sh &quot;&quot;&quot;
+                                    ssh hcadmin@${PROD_ENV} kubectl set image deployment/${APP} -n ${NS} ${APP}=${PROD_REPO}${IMAGE}:${TAG}
+                                &quot;&quot;&quot;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    post {
+        success{
+            script {
+                sh &quot;&quot;&quot;
+                    curl --location --request POST &apos;https://open.feishu.cn/open-apis/bot/v2/hook/251a14b1-765f-4aa8-b68f-632f933aae5e&apos; \
+                    -H &apos;Content-type: application/json&apos; \
+                    -d &apos;{&quot;msg_type&quot;:&quot;interactive&quot;,&quot;card&quot;:{&quot;type&quot;:&quot;template&quot;,&quot;data&quot;:{&quot;template_id&quot;:&quot;AAq0CYkkaldhK&quot;,&quot;template_version_name&quot;:&quot;1.0.6&quot;,&quot;template_variable&quot;:{&quot;env&quot;: &quot;${ENV}&quot;, &quot;task&quot;:&quot;${JOB_BASE_NAME}&quot;,&quot;duration&quot;:&quot;${currentBuild.durationString}&quot;,&quot;tag&quot;:&quot;${TAG}&quot;,&quot;note&quot;:&quot;${ReleaseNote}&quot;,&quot;build_url&quot;:&quot;${env.BUILD_URL}&quot;}}}}&apos;
+                &quot;&quot;&quot;
+            }
+        }
+        failure{
+            script {
+                sh &quot;&quot;&quot;
+                    curl --location --request POST &apos;https://open.feishu.cn/open-apis/bot/v2/hook/251a14b1-765f-4aa8-b68f-632f933aae5e&apos; \
+                    -H &apos;Content-type: application/json&apos; \
+                    -d &apos;{&quot;msg_type&quot;:&quot;interactive&quot;,&quot;card&quot;:{&quot;type&quot;:&quot;template&quot;,&quot;data&quot;:{&quot;template_id&quot;:&quot;AAq07Cg2reQYZ&quot;,&quot;template_version_name&quot;:&quot;1.0.0&quot;,&quot;template_variable&quot;:{&quot;env&quot;: &quot;${ENV}&quot;, &quot;task&quot;:&quot;${JOB_BASE_NAME}&quot;,&quot;duration&quot;:&quot;${currentBuild.durationString}&quot;,&quot;tag&quot;:&quot;${TAG}&quot;,&quot;note&quot;:&quot;${ReleaseNote}&quot;,&quot;build_url&quot;:&quot;${env.BUILD_URL}&quot;}}}}&apos;
+                &quot;&quot;&quot;
+            }
+        }
+    }
+
+}
+</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+  <disabled>false</disabled>
+</flow-definition>

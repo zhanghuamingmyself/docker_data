@@ -1,0 +1,9 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<com.gitee.jenkins.trigger.GiteePushTrigger_-DescriptorImpl plugin="gitee@1170.v3d4640b_34233">
+  <jobsMigrated>true</jobsMigrated>
+  <jobsMigrated2>true</jobsMigrated2>
+  <jobsMigrated3>false</jobsMigrated3>
+  <jobsMigrated4>true</jobsMigrated4>
+  <giteeHostUrl></giteeHostUrl>
+  <ignoreCertificateErrors>false</ignoreCertificateErrors>
+</com.gitee.jenkins.trigger.GiteePushTrigger_-DescriptorImpl>
